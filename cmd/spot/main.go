@@ -160,6 +160,9 @@ func run(opts options) error {
 		if _, err := os.Stat(opts.PlaybookFile); err != nil {
 			if resolved, ok := findDefaultPlaybook(); ok {
 				opts.PlaybookFile = resolved
+			} else if opts.PositionalArgs.AdHocCmd == "" && !opts.GenEnable {
+				fmt.Print("playbook spot.yml not found. Use -p <playbook> or run from repo root.\n")
+				return nil
 			}
 		}
 	}
