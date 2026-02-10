@@ -158,8 +158,8 @@ func run(opts options) error {
 
 	if opts.PlaybookFile == "spot.yml" {
 		if _, err := os.Stat(opts.PlaybookFile); err != nil {
-			if _, err2 := os.Stat(filepath.Join("spot", "spot.yml")); err2 == nil {
-				opts.PlaybookFile = filepath.Join("spot", "spot.yml")
+			if resolved, ok := findDefaultPlaybook(); ok {
+				opts.PlaybookFile = resolved
 			}
 		}
 	}
@@ -197,6 +197,28 @@ func run(opts options) error {
 
 	log.Printf("[INFO] completed all %d targets in %v", len(opts.Targets), time.Since(st).Truncate(100*time.Millisecond))
 	return nil
+}
+
+func findDefaultPlaybook() (string, bool) {
+	candidates := []string{
+		"spot.yml",
+		filepath.Join("playbooks", "spot.yml"),
+	}
+	if exe, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exe)
+		candidates = append(candidates,
+			filepath.Join(exeDir, "spot.yml"),
+			filepath.Join(exeDir, "playbooks", "spot.yml"),
+			filepath.Join(exeDir, "..", "spot.yml"),
+			filepath.Join(exeDir, "..", "playbooks", "spot.yml"),
+		)
+	}
+	for _, c := range candidates {
+		if _, err := os.Stat(c); err == nil {
+			return c, true
+		}
+	}
+	return "", false
 }
 
 // runTasks runs all tasks in playbook by default or a single task if specified in command line
