@@ -156,6 +156,14 @@ func run(opts options) error {
 		return fmt.Errorf("can't get inentory %q: %w", opts.Inventory, err)
 	}
 
+	if opts.PlaybookFile == "spot.yml" {
+		if _, err := os.Stat(opts.PlaybookFile); err != nil {
+			if _, err2 := os.Stat(filepath.Join("spot", "spot.yml")); err2 == nil {
+				opts.PlaybookFile = filepath.Join("spot", "spot.yml")
+			}
+		}
+	}
+
 	pbook, manualSecrets, err := makePlaybook(opts, inventoryFile)
 	if err != nil {
 		return fmt.Errorf("can't get playbook %q: %w", opts.PlaybookFile, err)
